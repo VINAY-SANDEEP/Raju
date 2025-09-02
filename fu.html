@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gemini Chatbot</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #141E30, #243B55);
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Start Screen */
+    #startScreen {
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    #startScreen h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+    }
+
+    #startBtn {
+      padding: 14px 36px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      background: linear-gradient(45deg, #4facfe, #00f2fe);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+      transition: all 0.3s ease;
+    }
+
+    #startBtn:hover {
+      transform: scale(1.08) translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    }
+
+    /* Chatbox */
+    #chatbox {
+      display: none;
+      width: 95%;
+      max-width: 800px;
+      height: 85vh;
+      margin: auto;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    #header {
+      background: rgba(0,0,0,0.4);
+      padding: 16px 24px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+
+    #clearBtn {
+      padding: 8px 18px;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: 0.3s;
+    }
+
+    #clearBtn:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    #messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.2) transparent;
+    }
+
+    #messages::-webkit-scrollbar { width: 8px; }
+    #messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 14px 18px;
+      border-radius: 16px;
+      line-height: 1.5;
+      font-size: 1rem;
+      animation: fadeIn 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .user {
+      align-self: flex-end;
+      background: linear-gradient(45deg, #4facfe, #00f2fe);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.9);
+      color: #111;
+      border-bottom-left-radius: 4px;
+    }
+
+    #input-area {
+      display: flex;
+      padding: 14px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.3);
+    }
+
+    #userInput {
+      flex: 1;
+      padding: 12px 16px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.85);
+      color: #000;
+      transition: 0.3s;
+    }
+
+    #userInput:focus {
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.4);
+    }
+
+    #sendBtn {
+      margin-left: 12px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      background: linear-gradient(45deg, #43e97b, #38f9d7);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #sendBtn:hover {
+      transform: scale(1.05);
+      background: linear-gradient(45deg, #3ac86e, #2ed9c9);
+    }
+
+    .typing-dots {
+      font-size: 1.5rem;
+      display: inline-block;
+      margin-left: 6px;
+    }
+
+    .typing-dots span {
+      display: inline-block;
+      animation: blink 1.4s infinite;
+    }
+
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.2; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-5px); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Start Screen -->
+  <div id="startScreen">
+    <h1>✨ Gemini Chatbot</h1>
+    <button id="startBtn" onclick="startChat()">Start Chat</button>
+  </div>
+
+  <!-- Chat Interface -->
+  <div id="chatbox">
+    <div id="header">
+      Gemini AI
+      <button id="clearBtn" onclick="clearChat()">Clear</button>
+    </div>
+    <div id="messages"></div>
+    <div id="input-area">
+      <input type="text" id="userInput" placeholder="Type your message..." onkeydown="handleKey(event)" />
+      <button id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    const API_KEY = "AIzaSyBX1cf0TbdDLlGkRv-rZJ-nRd-ropScwbk";  
+    const MODEL = "gemini-1.5-flash"; 
+    const BASE_URL = `https://generativelanguage.googleapis.com/v1/models/${MODEL}:generateContent?key=${API_KEY}`;
+
+    const messagesContainer = document.getElementById("messages");
+    const input = document.getElementById("userInput");
+    let chatHistory = [];
+
+    function startChat() {
+      document.getElementById("startScreen").style.display = "none";
+      document.getElementById("chatbox").style.display = "flex";
+      input.focus();
+      loadChat();
+    }
+
+    function handleKey(e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+      msg.innerHTML = sender === "bot" ? marked.parse(text) : text;
+      messagesContainer.appendChild(msg);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function convertToGeminiFormat() {
+      return chatHistory.map(msg => ({
+        role: msg.role,
+        parts: [{ text: msg.content }]
+      }));
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, "user");
+      chatHistory.push({ role: "user", content: text });
+      input.value = "";
+
+      // typing indicator
+      const botMsg = document.createElement("div");
+      botMsg.className = "message bot";
+      botMsg.innerHTML = `<div class="typing-dots"><span>.</span><span>.</span><span>.</span></div>`;
+      messagesContainer.appendChild(botMsg);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      try {
+        const res = await fetch(BASE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: convertToGeminiFormat() })
+        });
+
+        const data = await res.json();
+        if (!data.candidates) {
+          botMsg.textContent = "⚠️ Gemini did not return a response.";
+          return;
+        }
+
+        const reply = data.candidates[0]?.content?.parts?.[0]?.text?.trim() || "❌ No response from Gemini.";
+        chatHistory.push({ role: "assistant", content: reply });
+
+        botMsg.innerHTML = marked.parse(reply);
+        saveChat();
+      } catch (err) {
+        botMsg.textContent = "❌ Error: " + err.message;
+        console.error(err);
+      }
+    }
+
+    function clearChat() {
+      chatHistory = [];
+      messagesContainer.innerHTML = "";
+      localStorage.removeItem("gemini_chat");
+    }
+
+    function saveChat() {
+      localStorage.setItem("gemini_chat", JSON.stringify(chatHistory));
+    }
+
+    function loadChat() {
+      const saved = localStorage.getItem("gemini_chat");
+      if (saved) {
+        chatHistory = JSON.parse(saved);
+        chatHistory.forEach(msg => {
+          addMessage(msg.content, msg.role === "user" ? "user" : "bot");
+        });
+      }
+    }
+  </script>
+</body>
+</html>
